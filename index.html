@@ -21,7 +21,7 @@
     <script src="json-rpc-client.js"></script>
     <!-- Include custom styles -->
     <link rel="stylesheet" href="style.css">
-    <!-- Include event and start time data -->
+    <!-- Include JSON data files -->
     <script src="event-data.js"></script>
     <script src="start-times.js"></script>
 </head>
@@ -33,12 +33,8 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
-    // Check if the event data and start time data are available
-    if (typeof eventData !== 'undefined' && typeof startTimeData !== 'undefined') {
-        initializeCalendar(eventData, startTimeData); // Initialize calendar with fetched data
-    } else {
-        console.error("Failed to load event or start time data.");
-    }
+    // Initialize the calendar with the hardcoded data
+    initializeCalendar(eventData, startTimeData); // Directly use the variables from included JS files
 
     function initializeCalendar(eventData, startTimeData) {
         var calendarEl = document.getElementById('calendar');
@@ -113,12 +109,12 @@ $(document).ready(function () {
 
     function processEvents(eventData, startTimeData, start, end) {
         var calendarEvents = [];
-        Object.values(eventData).forEach(function (event) {
+        Object.values(eventData).forEach(function (event) { // Process all events from eventData
             if (event.unit_map && event.id && event.name) {
                 console.log("Processing event:", event); // Log each event to verify its structure
                 const providerId = Object.keys(event.unit_map)[0]; // Get the provider ID from the unit_map
                 
-                // Get the start times for this event and unit
+                // Fetch and process start times
                 const startTimes = getStartTimesForEvent(startTimeData, event.id, providerId);
                 startTimes.forEach(startTime => {
                     const endTime = calculateEndTime(startTime, event.duration); // Calculate end time using event duration
@@ -150,12 +146,7 @@ $(document).ready(function () {
     function getStartTimesForEvent(startTimeData, eventId, unitId) {
         // Filter start times for the given event and unit
         const eventStartTimes = startTimeData.find(item => item.service_id === eventId && item.provider_id === unitId);
-        if (!eventStartTimes) return [];
-        const timeslots = [];
-        Object.entries(eventStartTimes.timeslots).forEach(([date, times]) => {
-            times.forEach(time => timeslots.push(`${date}T${time}`));
-        });
-        return timeslots;
+        return eventStartTimes ? Object.values(eventStartTimes.timeslots).flat() : []; // Flatten all available timeslots
     }
 
     function calculateEndTime(startTime, duration) {
