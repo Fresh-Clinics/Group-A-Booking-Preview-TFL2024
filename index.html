@@ -46,8 +46,8 @@ $(document).ready(function () {
             console.log("Start time data loaded successfully.");
             startTimeData = data;
             initializeCalendar(); // Initialize calendar after start time data is loaded
-        }).fail(function () {
-            console.error("Failed to load start time data.");
+        }).fail(function (jqxhr, textStatus, error) {
+            console.error("Failed to load start time data. Error: " + textStatus + ", " + error);
         });
     }
 
