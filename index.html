@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar with Hardcoded Data from GitHub</title>
+    <title>Calendar with Hardcoded Data</title>
 
     <!-- Include FullCalendar Scheduler CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.css" rel="stylesheet" />
@@ -17,8 +17,7 @@
     <!-- Include Tippy.js for tooltips -->
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <!-- Include JSON-RPC Client Library for SimplyBook.me -->
-    <script src="https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/json-rpc-client.js"></script>
+    <!-- Include custom styles -->
     <link rel="stylesheet" href="https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/style.css">
 </head>
 <body>
@@ -29,30 +28,30 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
+    var eventData = [];  // To store event data
+    var startTimeData = [];  // To store start time data
+
     // Load event data from GitHub
-    const eventDataUrl = 'https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/event%20data.json';
-    const startTimeDataUrl = 'https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/start%20times.json';
+    $.getJSON("https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/event%20data.json", function (data) {
+        console.log("Event data loaded successfully.");
+        eventData = data;
+        loadStartTimeData(); // Load start times after event data is loaded
+    }).fail(function () {
+        console.error("Failed to load event data.");
+    });
 
-    // Fetch and parse JSON data
-    $.getJSON(eventDataUrl)
-        .done(function(eventData) {
-            console.log("Event data loaded successfully.");
-            
-            $.getJSON(startTimeDataUrl)
-                .done(function(startTimeData) {
-                    console.log("Start time data loaded successfully.");
-                    // Initialize the calendar after data is loaded
-                    initializeCalendar(eventData, startTimeData);
-                })
-                .fail(function() {
-                    console.error("Failed to load start time data.");
-                });
-        })
-        .fail(function() {
-            console.error("Failed to load event data.");
+    function loadStartTimeData() {
+        // Load start time data from GitHub
+        $.getJSON("https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/start%20times.json", function (data) {
+            console.log("Start time data loaded successfully.");
+            startTimeData = data;
+            initializeCalendar(); // Initialize calendar after start time data is loaded
+        }).fail(function () {
+            console.error("Failed to load start time data.");
         });
+    }
 
-    function initializeCalendar(eventData, startTimeData) {
+    function initializeCalendar() {
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
@@ -66,7 +65,7 @@ $(document).ready(function () {
             },
             dayMinWidth: 150, // Set column width
             resources: getHardcodedResources(), // Use hardcoded resources
-            events: getHardcodedEvents(eventData, startTimeData), // Combine hardcoded events with fetched events
+            events: getCombinedEvents(), // Combine API and hardcoded events
             height: 'auto',
             slotMinTime: '07:00',
             slotMaxTime: '23:00',
@@ -94,8 +93,8 @@ $(document).ready(function () {
                     const borderColor = getCategoryBorderColor(arg.event.extendedProps.category);
                     return {
                         html: `<div class="fc-event-content" style="border-top: 4px solid ${borderColor} !important;">
-                                  <div class="fc-event-title">${arg.event.title}</div>
-                                  <div class="fc-event-slots">${arg.event.extendedProps.displaySlots ? `Slots Available: ${arg.event.extendedProps.bookings_limit}` : ''}</div> <!-- Display slots available -->
+                                  <div class="fc-event-title" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${arg.event.title}</div>
+                                  <div class="fc-event-slots">${arg.event.extendedProps.displaySlots ? `Slots Available: ${arg.event.extendedProps.bookings_limit}` : ''}</div>
                                </div>`
                     };
                 } else {
@@ -132,9 +131,13 @@ $(document).ready(function () {
         calendar.render();
     }
 
-    function getHardcodedEvents(eventData, startTimeData) {
+    function getCombinedEvents() {
+        return [...eventData, ...getHardcodedEvents()];
+    }
+
+    function getHardcodedEvents() {
         const resources = getHardcodedResources();
-        const hardcodedEvents = resources.flatMap(resource => [
+        return resources.flatMap(resource => [
             {
                 id: `bg-event-${resource.id}-1`,
                 title: ' ',
@@ -246,13 +249,12 @@ $(document).ready(function () {
                 display: 'background'
             }
         ]);
-        return [...hardcodedEvents, ...eventData];
     }
 
     function getHardcodedResources() {
         return [
-            { id: '29', title: 'Woodlands Stage', category: 'Program', order_id: 'a', logo: ' ' },
-            { id: '30', title: 'Fresh Lounge', category: 'Program', order_id: 'b', logo: ' ' },
+            { id: '29', title: 'Woodlands Stage', category: 'Program', order_id: 'a', logo: '' },
+            { id: '30', title: 'Fresh Lounge', category: 'Program', order_id: 'b', logo: '' },
             { id: '8', title: 'Merz | Room 1', category: 'Training Suites', order_id: 'c', logo: 'Merz.png' },
             { id: '23', title: 'Merz | Room 2', category: 'Training Suites', order_id: 'd', logo: 'Merz.png' },
             { id: '2', title: 'Galderma | Room 1', category: 'Training Suites', order_id: 'e', logo: 'Galderma.png' },
@@ -276,14 +278,14 @@ $(document).ready(function () {
             { id: '19', title: 'Advanced Skin Technology', category: 'Activations Hub', order_id: 'w', logo: 'AST.png' },
             { id: '22', title: 'Fresh Tech Hub', category: 'Activations Hub', order_id: 'x', logo: 'fresh-tech-hub.png' },
             { id: '18', title: 'The Skincare Company', category: 'Activations Hub', order_id: 'y', logo: 'Skincare-Company.png' },
-            { id: '21', title: 'Wellness Sessions', category: 'Wellness & Spa', order_id: 'z', logo: ' ' },
-            { id: '16', title: 'The Fresh Spa', category: 'Wellness & Spa', order_id: 'zz', logo: ' ' }
+            { id: '21', title: 'Wellness Sessions', category: 'Wellness & Spa', order_id: 'z', logo: '' },
+            { id: '16', title: 'The Fresh Spa', category: 'Wellness & Spa', order_id: 'zz', logo: '' }
         ];
     }
 
     function getResourceLogo(resourceId) {
         const resource = getHardcodedResources().find(r => r.id === resourceId);
-        return resource ? `https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/image%20files/${resource.logo}` : '';
+        return resource ? resource.logo : '';
     }
 
     function formatTimeToAEST(date) {
@@ -306,7 +308,7 @@ $(document).ready(function () {
             case '8': return '#84cdb8';
             case '9': return '#84cdb8';
             case '10': return '#84cdb8';
-            case '11': return '#555555';
+            case '11': return '#84cdb8';
             case '12': return '#ebf7f4';
             default: return '#142652'; // Default color
         }
