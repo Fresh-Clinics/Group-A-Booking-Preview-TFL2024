@@ -21,6 +21,9 @@
     <script src="json-rpc-client.js"></script>
     <!-- Include custom styles -->
     <link rel="stylesheet" href="style.css">
+    <!-- Include local JSON data files -->
+    <script src="event-data.js"></script>
+    <script src="start-times.js"></script>
 </head>
 <body>
 
@@ -30,16 +33,12 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
-    // Load the JSON data for events and start times
-    $.getJSON('https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/event%20data.json', function(eventData) {
-        $.getJSON('https://raw.githubusercontent.com/Fresh-Clinics/Group-A-Booking-Preview-TFL2024/main/start%20times.json', function(startTimeData) {
-            initializeCalendar(eventData, startTimeData); // Initialize calendar with fetched data
-        }).fail(function(jqxhr, textStatus, error) {
-            console.error("Failed to load start time data. Error: " + textStatus + ", " + error);
-        });
-    }).fail(function(jqxhr, textStatus, error) {
-        console.error("Failed to load event data. Error: " + textStatus + ", " + error);
-    });
+    // Ensure eventData and startTimeData are loaded from the included JS files
+    if (typeof eventData !== 'undefined' && typeof startTimeData !== 'undefined') {
+        initializeCalendar(eventData, startTimeData);
+    } else {
+        console.error("Failed to load event or start time data.");
+    }
 
     function initializeCalendar(eventData, startTimeData) {
         var calendarEl = document.getElementById('calendar');
