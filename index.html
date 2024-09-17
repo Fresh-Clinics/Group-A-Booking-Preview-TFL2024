@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar with Hardcoded Events</title>
+    <title>Calendar with Hardcoded Events and Start Times</title>
 
     <!-- Include FullCalendar Scheduler CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.css" rel="stylesheet" />
@@ -21,8 +21,7 @@
     <script src="json-rpc-client.js"></script>
     <!-- Include custom styles -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- Load the Event and Start Time Data -->
+    <!-- Include event and start time data -->
     <script src="event-data.js"></script>
     <script src="start-times.js"></script>
 </head>
@@ -34,8 +33,12 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
-    // Initialize calendar after ensuring both data files are loaded
-    initializeCalendar(eventData, startTimeData);
+    // Check if the event data and start time data are available
+    if (typeof eventData !== 'undefined' && typeof startTimeData !== 'undefined') {
+        initializeCalendar(eventData, startTimeData); // Initialize calendar with fetched data
+    } else {
+        console.error("Failed to load event or start time data.");
+    }
 
     function initializeCalendar(eventData, startTimeData) {
         var calendarEl = document.getElementById('calendar');
@@ -110,12 +113,6 @@ $(document).ready(function () {
 
     function processEvents(eventData, startTimeData, start, end) {
         var calendarEvents = [];
-        
-        if (!Array.isArray(startTimeData)) {
-            console.error("Start time data is not in an array format.");
-            return calendarEvents;
-        }
-
         Object.values(eventData).forEach(function (event) {
             if (event.unit_map && event.id && event.name) {
                 console.log("Processing event:", event); // Log each event to verify its structure
@@ -153,7 +150,12 @@ $(document).ready(function () {
     function getStartTimesForEvent(startTimeData, eventId, unitId) {
         // Filter start times for the given event and unit
         const eventStartTimes = startTimeData.find(item => item.service_id === eventId && item.provider_id === unitId);
-        return eventStartTimes ? Object.values(eventStartTimes.timeslots).flat() : []; // Flatten all available timeslots
+        if (!eventStartTimes) return [];
+        const timeslots = [];
+        Object.entries(eventStartTimes.timeslots).forEach(([date, times]) => {
+            times.forEach(time => timeslots.push(`${date}T${time}`));
+        });
+        return timeslots;
     }
 
     function calculateEndTime(startTime, duration) {
@@ -176,7 +178,7 @@ $(document).ready(function () {
         return dateObj >= new Date(start) && dateObj <= new Date(end); // Check if date is within the range
     }
 
-    function getCategoryBorderColor(category) {
+   function getCategoryBorderColor(category) {
         switch (category) {
             case '1': return '#142652';
             case '2': return '#142652';
@@ -190,7 +192,7 @@ $(document).ready(function () {
             case '11': return '#84cdb8';
             case '12': return '#ebf7f4';
             default: return '#142652'; // Default color
-        }
+        }    
     }
 
     function getHardcodedResources() {
