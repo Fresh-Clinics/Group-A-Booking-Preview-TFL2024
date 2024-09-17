@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar with Hardcoded Events and Start Times</title>
+    <title>Calendar with Hardcoded Events</title>
 
     <!-- Include FullCalendar Scheduler CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.css" rel="stylesheet" />
@@ -21,9 +21,6 @@
     <script src="json-rpc-client.js"></script>
     <!-- Include custom styles -->
     <link rel="stylesheet" href="style.css">
-    <!-- Include JSON data files -->
-    <script src="event-data.js"></script>
-    <script src="start-times.js"></script>
 </head>
 <body>
 
@@ -33,8 +30,16 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
-    // Initialize the calendar with the hardcoded data
-    initializeCalendar(eventData, startTimeData); // Directly use the variables from included JS files
+    // Load the JSON data for events and start times
+    $.getJSON('event-data.js', function(eventData) {
+        $.getJSON('start-times.js', function(startTimeData) {
+            initializeCalendar(eventData, startTimeData); // Initialize calendar with fetched data
+        }).fail(function() {
+            console.error("Failed to load start time data.");
+        });
+    }).fail(function() {
+        console.error("Failed to load event data.");
+    });
 
     function initializeCalendar(eventData, startTimeData) {
         var calendarEl = document.getElementById('calendar');
@@ -109,12 +114,12 @@ $(document).ready(function () {
 
     function processEvents(eventData, startTimeData, start, end) {
         var calendarEvents = [];
-        Object.values(eventData).forEach(function (event) { // Process all events from eventData
+        Object.values(eventData).forEach(function (event) {
             if (event.unit_map && event.id && event.name) {
                 console.log("Processing event:", event); // Log each event to verify its structure
                 const providerId = Object.keys(event.unit_map)[0]; // Get the provider ID from the unit_map
                 
-                // Fetch and process start times
+                // Get the start times for this event and unit
                 const startTimes = getStartTimesForEvent(startTimeData, event.id, providerId);
                 startTimes.forEach(startTime => {
                     const endTime = calculateEndTime(startTime, event.duration); // Calculate end time using event duration
