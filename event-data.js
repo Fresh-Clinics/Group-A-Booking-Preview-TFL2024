@@ -1,4 +1,5 @@
-{
+const eventData = [
+    {
     "10": {
         "id": "10",
         "name": "FASTTRACK (Beginner) - Everything you need to know to get started with Nuceiva® (prabotulinumtoxinA).",
@@ -8529,3 +8530,4 @@
         "ticket_id": null
     }
 }
+];
