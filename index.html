@@ -30,18 +30,23 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
-    // Fetch event data from 'event-data.js'
-    $.getJSON('event-data.js', function(eventData) {
-        // Fetch start time data from 'start-times.js' after event data has been successfully loaded
-        $.getJSON('start-times.js', function(startTimeData) {
-            // Initialize calendar with the fetched data
-            initializeCalendar(eventData, startTimeData);
-        }).fail(function() {
-            console.error("Failed to load start time data.");
+    // Load the JSON data for events and start times
+    $.getJSON('event-data.js')
+        .done(function(eventData) {
+            console.log("Event data loaded successfully:", eventData); // Debugging line
+
+            $.getJSON('start-times.js')
+                .done(function(startTimeData) {
+                    console.log("Start time data loaded successfully:", startTimeData); // Debugging line
+                    initializeCalendar(eventData, startTimeData); // Initialize calendar with fetched data
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Failed to load start time data. Error:", textStatus, errorThrown);
+                });
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Failed to load event data. Error:", textStatus, errorThrown);
         });
-    }).fail(function() {
-        console.error("Failed to load event data.");
-    });
 
     function initializeCalendar(eventData, startTimeData) {
         var calendarEl = document.getElementById('calendar');
@@ -49,22 +54,22 @@ $(document).ready(function () {
             schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
             initialView: 'resourceTimeGridDay',
             initialDate: '2024-10-29',
-            timeZone: 'Australia/Sydney',
+            timeZone: 'Australia/Sydney', // Set timezone to AEST
             headerToolbar: {
                 left: 'prev',
                 center: 'title',
                 right: 'next'
             },
-            dayMinWidth: 150,
-            resources: getHardcodedResources(),
+            dayMinWidth: 150, // Set column width
+            resources: getHardcodedResources(), // Use hardcoded resources
             events: function (info, successCallback, failureCallback) {
                 const processedEvents = processEvents(eventData, startTimeData, info.startStr, info.endStr);
-                successCallback([...processedEvents, ...getHardcodedEvents()]);
+                successCallback([...processedEvents, ...getHardcodedEvents()]); // Load processed events and hardcoded events
             },
             height: 'auto',
             slotMinTime: '07:00',
             slotMaxTime: '23:00',
-            resourceOrder: 'order_id',
+            resourceOrder: 'order_id', // Order by order_id
             businessHours: [
                 { daysOfWeek: [2], startTime: '09:00', endTime: '18:30' },
                 { daysOfWeek: [3], startTime: '07:30', endTime: '19:00' },
@@ -72,6 +77,7 @@ $(document).ready(function () {
             ],
             eventContent: function (arg) {
                 if (arg.event && arg.event.title) {
+                    // Determine border color based on category
                     const borderColor = getCategoryBorderColor(arg.event.extendedProps.category);
                     return {
                         html: `<div class="fc-event-content" style="border-top: 4px solid ${borderColor} !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -150,6 +156,7 @@ $(document).ready(function () {
     }
 
     function getStartTimesForEvent(startTimeData, eventId, unitId) {
+        // Filter start times for the given event and unit
         const eventStartTimes = startTimeData.find(item => item.service_id === eventId && item.provider_id === unitId);
         return eventStartTimes ? Object.values(eventStartTimes.timeslots).flat() : []; // Flatten all available timeslots
     }
@@ -174,7 +181,7 @@ $(document).ready(function () {
         return dateObj >= new Date(start) && dateObj <= new Date(end); // Check if date is within the range
     }
 
-   function getCategoryBorderColor(category) {
+    function getCategoryBorderColor(category) {
         switch (category) {
             case '1': return '#142652';
             case '2': return '#142652';
@@ -188,7 +195,7 @@ $(document).ready(function () {
             case '11': return '#84cdb8';
             case '12': return '#ebf7f4';
             default: return '#142652'; // Default color
-        }    
+        }
     }
 
     function getHardcodedResources() {
