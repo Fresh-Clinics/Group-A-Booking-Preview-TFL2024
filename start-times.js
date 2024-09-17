@@ -1,4 +1,4 @@
-[
+const startTimeData = [
    {
       "provider_id": 11,
       "service_id": 44,
@@ -17,4 +17,4 @@
          "2024-10-31": []
       }
    }
-]
+];
