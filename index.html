@@ -21,7 +21,7 @@
     <script src="json-rpc-client.js"></script>
     <!-- Include custom styles -->
     <link rel="stylesheet" href="style.css">
-    <!-- Include local JSON data files -->
+    <!-- Include event and start time data -->
     <script src="event-data.js"></script>
     <script src="start-times.js"></script>
 </head>
@@ -33,9 +33,8 @@
 $(document).ready(function () {
     console.log("Initializing Calendar with Hardcoded Data...");
 
-    // Ensure eventData and startTimeData are loaded from the included JS files
     if (typeof eventData !== 'undefined' && typeof startTimeData !== 'undefined') {
-        initializeCalendar(eventData, startTimeData);
+        initializeCalendar(eventData, startTimeData); // Initialize calendar with fetched data
     } else {
         console.error("Failed to load event or start time data.");
     }
@@ -173,7 +172,7 @@ $(document).ready(function () {
         return dateObj >= new Date(start) && dateObj <= new Date(end); // Check if date is within the range
     }
 
-    function getCategoryBorderColor(category) {
+   function getCategoryBorderColor(category) {
         switch (category) {
             case '1': return '#142652';
             case '2': return '#142652';
@@ -187,8 +186,7 @@ $(document).ready(function () {
             case '11': return '#84cdb8';
             case '12': return '#ebf7f4';
             default: return '#142652'; // Default color
-        }    
-    }
+        }    }
 
     function getHardcodedResources() {
         return [
